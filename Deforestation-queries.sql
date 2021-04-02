@@ -1,5 +1,3 @@
-
-
 CREATE VIEW forestation AS
 SELECT f.country_code, f.country_name, f.year, f.forest_area_sqkm, 
 l.total_area_sq_mi*2.59 as total_area_sqkm, r.region, r.income_group,
@@ -19,6 +17,16 @@ WHERE year = 1990 AND country_name = 'World';
 SELECT forest_area_sqkm FROM
 forestation
 WHERE year = 2016 AND country_name = 'World';
+
+
+
+SELECT 
+	(SELECT forest_area_sqkm FROM forestation WHERE year = 1990 AND country_name = 'World' ) -
+    (SELECT forest_area_sqkm FROM forestation WHERE year = 2016 AND country_name = 'World' ) AS diff,
+	((SELECT forest_area_sqkm FROM forestation WHERE year = 1990 AND country_name = 'World' ) -
+    (SELECT forest_area_sqkm FROM forestation WHERE year = 2016 AND country_name = 'World' ))*100/(SELECT forest_area_sqkm FROM forestation WHERE year = 1990 AND country_name = 'World' ) AS percent_change
+FROM forestation;
+
 
 SELECT * FROM
 forestation
@@ -61,9 +69,9 @@ JOIN t1
 ON  t2.country_name = t1.country_name
 ORDER BY forest_difference DESC; 
 
-WITH t1 AS (SELECT country_name, forest_percent as forest_percent_1990 FROM forestation WHERE year = 1990),
-t2 AS (SELECT country_name, forest_percent as forest_percent_2016 FROM forestation WHERE year = 2016)
-SELECT (t2.forest_percent_2016 - t1.forest_percent_1990) AS forest_percent_difference, t2.country_name
+WITH t1 AS (SELECT country_name, forest_area_sqkm as forest_sqkm_1990 FROM forestation WHERE year = 1990),
+t2 AS (SELECT country_name, forest_area_sqkm as forest_sqkm_2016 FROM forestation WHERE year = 2016)
+SELECT (t2.forest_sqkm_2016 - t1.forest_sqkm_1990)/t1.forest_sqkm_1990 AS forest_percent_difference, t2.country_name
 FROM t2 
 JOIN t1
 ON  t2.country_name = t1.country_name
@@ -101,12 +109,7 @@ SUM( CASE WHEN f.forest_percent <=  0.5 AND f.forest_percent > 0.25  THEN 1 ELSE
 SUM( CASE WHEN f.forest_percent <=  0.75 AND f.forest_percent > 0.5  THEN 1 ELSE 0 END) as quatile_3_count,
 SUM( CASE WHEN f.forest_percent >  0.75   THEN 1 ELSE 0 END) as quatile_4_count
 FROM forestation f
-WHERE f.year = 2016;
-
-
-
-
-
+WHERE f.year = 2016 AND country_name != 'World';
 
 
 
