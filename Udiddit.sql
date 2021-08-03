@@ -61,8 +61,8 @@ INSERT INTO "topics" ("topic_name")
 INSERT INTO "users" ("user_name")
 	SELECT DISTINCT "username" FROM "bad_posts";
     
-INSERT INTO "users" ("user_name")    
-    SELECT DISTINCT "user_name" FROM "bad_comments" 
+INSERT INTO "users" ("user_name") 
+    SELECT  "username" AS name  FROM "bad_comments"
     WHERE 
     NOT EXISTS (SELECT "user_name" 
                 FROM users);
@@ -82,20 +82,31 @@ INSERT INTO "users" ("user_name")
     NOT EXISTS (SELECT "user_name" 
                 FROM users);
                 
-INSERT INTO "posts" ("title")
-	SELECT "title" FROM "bad_posts";
+INSERT INTO "posts" ("title","url","text_content")
+	SELECT "title","url", "text_content" FROM "bad_posts"
+	WHERE LENGTH("title") <= 100 ;
 
-INSERT INTO "posts" ("url")
-	SELECT "url" FROM "bad_posts";
 
-INSERT INTO "posts" ("text_content")
-	SELECT "text_content" FROM "bad_posts";
+
+
+
+
+
+
+
+
+
+
+
     
 UPDATE "comments" SET "post_id" = (
   SELECT post_id 
   FROM bad_comments
   WHERE bad_comments.id = comments.id
 );
+
+INSERT INTO "comments" ("post_id")
+	SELECT bad_comments.post_id FROM bad_comments JOIN comments ON bad_comments.id = comments.id;
 
 UPDATE "comments" SET "user_id" = (
   SELECT id 
@@ -104,7 +115,7 @@ UPDATE "comments" SET "user_id" = (
 );
 
 INSERT INTO "votes" ("post_id","user_id") 
-	SELECT bad_posts.id, users.id from bad_posts JOIN usrs ON users.user_name = bad_posts.REGEXP_SPLIT_TO_TABLE(upvotes,',');
+	SELECT bad_posts.id, users.id from bad_posts JOIN users ON users.user_name = bad_posts.REGEXP_SPLIT_TO_TABLE(upvotes,',');
 
 UPDATE "votes" SET vote_value = 1;
 
