@@ -1,3 +1,9 @@
+DROP TABLE IF EXISTS users CASCADE;
+DROP TABLE IF EXISTS topics CASCADE;
+DROP TABLE IF EXISTS posts CASCADE;
+DROP TABLE IF EXISTS comments CASCADE;
+DROP TABLE IF EXISTS votes CASCADE;
+
 CREATE TABLE users (
 	id SERIAL PRIMARY KEY,
   	user_name VARCHAR(25) UNIQUE NOT NULL,
@@ -11,7 +17,7 @@ CREATE INDEX "find_user_by_login_time" ON "users" ("recent_login_time");
 CREATE TABLE topics (
 	id SERIAL PRIMARY KEY,
   	topic_name VARCHAR(30) UNIQUE NOT NULL ,
-	user_id BIGINT REFERENCES users 
+	user_id BIGINT REFERENCES users,
   	description VARCHAR(500)
 );
 
@@ -36,7 +42,7 @@ CREATE TABLE votes (
 	id SERIAL PRIMARY KEY,
   	post_id BIGINT REFERENCES "posts" ON DELETE CASCADE NOT NULL,
   	user_id BIGINT REFERENCES "users" ON DELETE SET NULL,
-  	vote_value SMALLINT CHECK (vote =1 OR vote = -1),
+  	vote_value SMALLINT CHECK (vote_value =1 OR vote_value = -1),
 	CONSTRAINT "one_vote_per_user" UNIQUE(user_id, post_id)
 );
 
@@ -133,32 +139,29 @@ INSERT INTO "votes" ("user_id","post_id")
 
 UPDATE "votes" SET vote_value = 1;
 
-DROP VIEW names;
-DROP VIEW id_names;
 
 
-CREATE VIEW names AS
+
+CREATE VIEW down_vote_names AS
 	SELECT REGEXP_SPLIT_TO_TABLE(bad_posts.downvotes,',') 
 	FROM bad_posts;
 
-CREATE VIEW id_names AS
-	SELECT users.id, names.regexp_split_to_table
+CREATE VIEW id_down_vote_names AS
+	SELECT users.id, down_vote_names.regexp_split_to_table
 	FROM users
-	JOIN names
-	ON names.regexp_split_to_table = users.user_name;
+	JOIN down_vote_names
+	ON down_vote_names.regexp_split_to_table = users.user_name;
 
 INSERT INTO "votes" ("user_id","post_id") 
-	SELECT id_names.id, posts.id FROM users 
-	JOIN id_names 
-	ON users.user_name = id_names.regexp_split_to_table
+	SELECT id_down_vote_names.id, posts.id FROM users 
+	JOIN id_down_vote_names 
+	ON users.user_name = id_down_vote_names.regexp_split_to_table
 	JOIN posts
-	ON posts.user_id = id_names.id;
+	ON posts.user_id = id_down_vote_names.id;
 	
 
 UPDATE "votes" SET vote_value = -1 WHERE vote_value is NULL;
 
 
-DROP VIEW names;
-DROP VIEW id_names;
-DROP TABLE bad_comments;
-DROP TABLE bad_posts;
+
+
