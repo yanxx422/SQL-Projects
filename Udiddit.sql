@@ -11,6 +11,7 @@ CREATE INDEX "find_user_by_login_time" ON "users" ("recent_login_time");
 CREATE TABLE topics (
 	id SERIAL PRIMARY KEY,
   	topic_name VARCHAR(30) UNIQUE NOT NULL ,
+	user_id BIGINT REFERENCES users 
   	description VARCHAR(500)
 );
 
@@ -20,7 +21,7 @@ CREATE TABLE posts (
   	url VARCHAR(4000),
   	text_content TEXT,
   	user_id BIGINT REFERENCES "users" ON DELETE SET NULL,
-  	topic_id BIGINT REFERENCES "topics" ON DELETE CASCADE NOT NULL,
+  	topic_id BIGINT REFERENCES "topics" ON DELETE CASCADE,
 	score BIGINT,
   	CONSTRAINT only_one_value CHECK (("url" is NULL OR "text_content" is NULL) 
 				   AND NOT ("url" is NULL AND "text_content" is NULL))
@@ -43,7 +44,7 @@ CREATE TABLE votes (
   
 CREATE TABLE comments (
 	id SERIAL PRIMARY KEY,
-  	post_id BIGINT REFERENCES "posts" ("id") ON DELETE CASCADE NOT NULL,
+  	post_id BIGINT REFERENCES "posts" ("id") ON DELETE CASCADE,
   	user_id BIGINT REFERENCES "users" ON DELETE SET NULL,
   	parent_comment_id BIGINT REFERENCES "comments" ("id") ON DELETE CASCADE,
   	text_content TEXT not NULL
